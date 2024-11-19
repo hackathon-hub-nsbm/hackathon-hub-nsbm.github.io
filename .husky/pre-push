@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+APP_DIR="./src"
+CHECKSUM_FILE=".src_checksum"
+
+current_checksum=$(find "$APP_DIR" -type f -exec md5sum {} + | md5sum | awk '{print $1}')
+
+if [ ! -f "$CHECKSUM_FILE" ]; then
+  echo "$current_checksum" > "$CHECKSUM_FILE"
+  echo "First run, running build..."
+  bun run build
+else
+  previous_checksum=$(cat "$CHECKSUM_FILE")
+
+  if [ "$current_checksum" != "$previous_checksum" ]; then
+    echo "Changes detected, running build..."
+    bun run build
+    echo "$current_checksum" > "$CHECKSUM_FILE"
+  else
+    echo "No changes detected, skipping build."
+  fi
+fi
